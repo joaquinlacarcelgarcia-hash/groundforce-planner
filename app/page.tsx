@@ -2,6 +2,11 @@
 
 import { useMemo, useState } from "react";
 
+import Calendario from "@/components/Calendario";
+import Stats from "@/components/Stats";
+import Nomina from "@/components/Nomina";
+import Verificador from "@/components/Verificador";
+
 import {
   importarExcelGroundforce,
 } from "@/lib/parserGroundforce";
@@ -61,90 +66,6 @@ function calcularNocturnas(
   return horas;
 }
 
-function calcularHorasDia(
-  dia: DiaTurno
-) {
-  let total = 0;
-
-  dia.bloques.forEach(
-    (bloque) => {
-
-      total +=
-        calcularHoras(
-          bloque.inicio,
-          bloque.fin
-        );
-
-    }
-  );
-
-  return total;
-}
-
-function obtenerColorTurno(
-  dia: DiaTurno
-) {
-
-  if (
-    dia.codigo === "DL"
-  ) {
-    return "bg-slate-200 border-slate-300";
-  }
-
-  if (
-    dia.codigo === "V"
-  ) {
-    return "bg-green-100 border-green-300";
-  }
-
-  if (
-    dia.codigo === "F"
-  ) {
-    return "bg-red-100 border-red-300";
-  }
-
-  if (
-    dia.bloques.some(
-      (b) =>
-        Number(
-          b.inicio.split(":")[0]
-        ) >= 22
-    )
-  ) {
-    return "bg-purple-100 border-purple-300";
-  }
-
-  if (
-    dia.bloques.some(
-      (b) =>
-        Number(
-          b.inicio.split(":")[0]
-        ) < 12
-    )
-  ) {
-    return "bg-blue-100 border-blue-300";
-  }
-
-  return "bg-orange-100 border-orange-300";
-}
-
-function obtenerNombreDia(
-  indice: number
-) {
-
-  const dias = [
-    "LUN",
-    "MAR",
-    "MIE",
-    "JUE",
-    "VIE",
-    "SAB",
-    "DOM",
-  ];
-
-  return dias[indice];
-}
-
 export default function Home() {
 
   const [turnos, setTurnos] =
@@ -154,7 +75,7 @@ export default function Home() {
     useState("TODOS");
 
   // =====================================
-  // IMPORTAR
+  // IMPORTAR EXCEL
   // =====================================
 
   async function manejarImportacion(
@@ -186,7 +107,7 @@ export default function Home() {
   }
 
   // =====================================
-  // MESES
+  // MESES DISPONIBLES
   // =====================================
 
   const meses =
@@ -199,7 +120,7 @@ export default function Home() {
     );
 
   // =====================================
-  // FILTRO
+  // FILTRAR MES
   // =====================================
 
   const turnosFiltrados =
@@ -212,7 +133,7 @@ export default function Home() {
         );
 
   // =====================================
-  // STATS
+  // ESTADISTICAS
   // =====================================
 
   const estadisticas =
@@ -228,6 +149,16 @@ export default function Home() {
 
       turnosFiltrados.forEach(
         (dia) => {
+
+          if (
+            dia.codigo === "DL"
+          )
+            return;
+
+          if (
+            dia.codigo === "V"
+          )
+            return;
 
           if (
             dia.codigo === "F"
@@ -313,113 +244,63 @@ export default function Home() {
     );
 
   // =====================================
-  // ALERTAS
+  // VERIFICADOR
   // =====================================
 
-  const alertas: string[] =
+  const errores: string[] =
     [];
-
-  if (
-    estadisticas.horas > 180
-  ) {
-    alertas.push(
-      "Exceso posible de jornada"
-    );
-  }
 
   if (
     estadisticas.nocturnas > 40
   ) {
-    alertas.push(
-      "Demasiadas nocturnas"
+    errores.push(
+      "Exceso nocturnidad"
     );
   }
 
-  // =====================================
-  // ORDENAR
-  // =====================================
-
-  const diasOrdenados =
-    [...turnosFiltrados].sort(
-      (a, b) =>
-        a.dia - b.dia
+  if (
+    estadisticas.horas > 180
+  ) {
+    errores.push(
+      "Posible exceso jornada"
     );
+  }
 
   // =====================================
   // UI
   // =====================================
 
   return (
-    <main className="min-h-screen bg-slate-100">
+    <main className="min-h-screen bg-slate-100 p-6">
 
-      {/* HEADER */}
+      <div className="mx-auto max-w-7xl">
 
-      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-600 px-6 py-10 shadow-2xl">
+        {/* HEADER */}
 
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mb-6 overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 to-cyan-500 p-8 shadow-2xl">
 
-          <div>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-            <h1 className="text-5xl font-black tracking-tight text-white">
-              Groundforce Planner
-            </h1>
+            <div>
 
-            <p className="mt-3 text-lg text-blue-100">
-              Centro operativo aeroportuario
-            </p>
+              <h1 className="text-5xl font-black text-white">
+                Groundforce Planner
+              </h1>
 
-          </div>
-
-          {/* KPIS */}
-
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-
-            <div className="rounded-3xl bg-white/10 p-5 backdrop-blur">
-
-              <div className="text-sm font-bold uppercase tracking-wider text-blue-100">
-                Horas
-              </div>
-
-              <div className="mt-2 text-4xl font-black text-white">
-                {estadisticas.horas}
-              </div>
+              <p className="mt-3 text-lg text-blue-100">
+                Simulador operativo y salarial inteligente
+              </p>
 
             </div>
 
-            <div className="rounded-3xl bg-white/10 p-5 backdrop-blur">
+            <div className="rounded-3xl bg-white/20 px-6 py-4 backdrop-blur">
 
-              <div className="text-sm font-bold uppercase tracking-wider text-blue-100">
-                Nocturnas
+              <div className="text-sm font-bold uppercase tracking-widest text-blue-100">
+                Grado ocupación
               </div>
 
-              <div className="mt-2 text-4xl font-black text-white">
-                {
-                  estadisticas.nocturnas
-                }
-              </div>
-
-            </div>
-
-            <div className="rounded-3xl bg-white/10 p-5 backdrop-blur">
-
-              <div className="text-sm font-bold uppercase tracking-wider text-blue-100">
-                Ocupación
-              </div>
-
-              <div className="mt-2 text-4xl font-black text-white">
+              <div className="mt-1 text-4xl font-black text-white">
                 {gradoOcupacion}%
-              </div>
-
-            </div>
-
-            <div className="rounded-3xl bg-white/10 p-5 backdrop-blur">
-
-              <div className="text-sm font-bold uppercase tracking-wider text-blue-100">
-                Neto
-              </div>
-
-              <div className="mt-2 text-4xl font-black text-white">
-                {neto.toFixed(0)}€
               </div>
 
             </div>
@@ -428,25 +309,19 @@ export default function Home() {
 
         </div>
 
-      </div>
-
-      {/* BODY */}
-
-      <div className="mx-auto max-w-7xl p-6">
-
         {/* CONTROLES */}
 
-        <div className="mb-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="mb-6 grid gap-6 lg:grid-cols-[1fr_300px]">
 
           {/* IMPORTAR */}
 
           <div className="rounded-3xl bg-white p-6 shadow-2xl">
 
-            <h2 className="mb-4 text-2xl font-black">
+            <h2 className="mb-4 text-2xl font-bold">
               Importar cuadrante
             </h2>
 
-            <label className="flex cursor-pointer items-center justify-center rounded-3xl bg-blue-600 px-6 py-5 text-xl font-bold text-white transition hover:bg-blue-700">
+            <label className="flex cursor-pointer items-center justify-center rounded-3xl bg-blue-600 px-6 py-5 text-lg font-bold text-white transition hover:bg-blue-700">
 
               Importar Excel Groundforce
 
@@ -463,11 +338,11 @@ export default function Home() {
 
           </div>
 
-          {/* MES */}
+          {/* SELECTOR MES */}
 
           <div className="rounded-3xl bg-white p-6 shadow-2xl">
 
-            <h2 className="mb-4 text-2xl font-black">
+            <h2 className="mb-4 text-2xl font-bold">
               Mes
             </h2>
 
@@ -478,7 +353,7 @@ export default function Home() {
                   e.target.value
                 )
               }
-              className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 text-lg font-bold"
+              className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 text-lg font-semibold"
             >
 
               <option value="TODOS">
@@ -502,328 +377,116 @@ export default function Home() {
 
         </div>
 
-        {/* LAYOUT */}
+        {/* DASHBOARD SUPERIOR */}
 
-        <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
-
-          {/* CALENDARIO */}
+        <div className="mb-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
 
           <div className="rounded-3xl bg-white p-6 shadow-2xl">
 
-            <div className="mb-8 flex items-center justify-between">
-
-              <div>
-
-                <h2 className="text-3xl font-black text-slate-800">
-                  Operativa mensual
-                </h2>
-
-                <p className="mt-2 text-slate-500">
-                  Calendario operacional aeroportuario
-                </p>
-
-              </div>
-
-              <div className="rounded-2xl bg-blue-100 px-5 py-3 font-black text-blue-700">
-
-                {diasOrdenados.length} registros
-
-              </div>
-
+            <div className="text-sm font-bold uppercase tracking-wider text-slate-500">
+              Horas
             </div>
 
-            {/* DIAS SEMANA */}
-
-            <div className="mb-4 grid grid-cols-7 gap-3">
-
-              {[
-                "LUN",
-                "MAR",
-                "MIE",
-                "JUE",
-                "VIE",
-                "SAB",
-                "DOM",
-              ].map((d) => (
-
-                <div
-                  key={d}
-                  className="rounded-2xl bg-slate-200 py-3 text-center text-sm font-black tracking-wider text-slate-700"
-                >
-                  {d}
-                </div>
-
-              ))}
-
-            </div>
-
-            {/* GRID CALENDARIO */}
-
-            <div className="grid grid-cols-7 gap-3">
-
-              {diasOrdenados.map(
-                (
-                  dia,
-                  index
-                ) => {
-
-                  const horasDia =
-                    calcularHorasDia(
-                      dia
-                    );
-
-                  return (
-
-                    <div
-                      key={index}
-                      className={`min-h-[170px] rounded-3xl border p-3 shadow-sm transition hover:scale-[1.02] hover:shadow-xl ${obtenerColorTurno(
-                        dia
-                      )}`}
-                    >
-
-                      {/* HEADER */}
-
-                      <div className="mb-3 flex items-center justify-between">
-
-                        <div className="text-2xl font-black text-slate-800">
-                          {dia.dia}
-                        </div>
-
-                        {dia.codigo && (
-
-                          <div className="rounded-xl bg-white px-2 py-1 text-xs font-black shadow">
-
-                            {dia.codigo}
-
-                          </div>
-
-                        )}
-
-                      </div>
-
-                      {/* TURNOS */}
-
-                      <div className="space-y-2">
-
-                        {dia.bloques.length >
-                        0 ? (
-
-                          dia.bloques.map(
-                            (
-                              bloque,
-                              i
-                            ) => (
-
-                              <div
-                                key={i}
-                                className="rounded-2xl bg-white p-2 text-center shadow"
-                              >
-
-                                <div className="text-sm font-black text-slate-800">
-
-                                  {bloque.inicio}
-
-                                </div>
-
-                                <div className="text-xs text-slate-400">
-                                  ↓
-                                </div>
-
-                                <div className="text-sm font-black text-slate-800">
-
-                                  {bloque.fin}
-
-                                </div>
-
-                              </div>
-
-                            )
-                          )
-
-                        ) : (
-
-                          <div className="rounded-2xl bg-white p-3 text-center text-xs font-bold text-slate-500 shadow">
-
-                            {dia.codigo ||
-                              "Sin turno"}
-
-                          </div>
-
-                        )}
-
-                      </div>
-
-                      {/* FOOTER */}
-
-                      {horasDia > 0 && (
-
-                        <div className="mt-3 rounded-2xl bg-white p-2 text-center shadow">
-
-                          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                            Jornada
-                          </div>
-
-                          <div className="mt-1 text-lg font-black text-blue-700">
-
-                            {horasDia}h
-
-                          </div>
-
-                        </div>
-
-                      )}
-
-                    </div>
-
-                  );
-                }
-              )}
-
+            <div className="mt-2 text-5xl font-black text-blue-700">
+              {estadisticas.horas}
             </div>
 
           </div>
+
+          <div className="rounded-3xl bg-white p-6 shadow-2xl">
+
+            <div className="text-sm font-bold uppercase tracking-wider text-slate-500">
+              Nocturnas
+            </div>
+
+            <div className="mt-2 text-5xl font-black text-indigo-700">
+              {estadisticas.nocturnas}
+            </div>
+
+          </div>
+
+          <div className="rounded-3xl bg-white p-6 shadow-2xl">
+
+            <div className="text-sm font-bold uppercase tracking-wider text-slate-500">
+              Días trabajados
+            </div>
+
+            <div className="mt-2 text-5xl font-black text-emerald-700">
+              {
+                estadisticas.diasTrabajados
+              }
+            </div>
+
+          </div>
+
+          <div className="rounded-3xl bg-white p-6 shadow-2xl">
+
+            <div className="text-sm font-bold uppercase tracking-wider text-slate-500">
+              Neto estimado
+            </div>
+
+            <div className="mt-2 text-5xl font-black text-orange-600">
+              {neto.toFixed(0)}€
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* CONTENIDO */}
+
+        <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
+
+          {/* CALENDARIO */}
+
+          <Calendario
+            turnos={
+              turnosFiltrados
+            }
+          />
 
           {/* SIDEBAR */}
 
           <div className="space-y-6">
 
-            {/* NOMINA */}
+            <Stats
+              horas={
+                estadisticas.horas
+              }
+              nocturnas={
+                estadisticas.nocturnas
+              }
+              dias={
+                estadisticas.diasTrabajados
+              }
+              festivos={
+                estadisticas.festivos
+              }
+              ocupacion={
+                gradoOcupacion
+              }
+            />
 
-            <div className="rounded-3xl bg-white p-6 shadow-2xl">
+            <Nomina
+              salarioBase={
+                salarioBase
+              }
+              plusNocturnidad={
+                plusNocturnidad
+              }
+              plusFestivos={
+                plusFestivos
+              }
+              plusTransporte={
+                plusTransporte
+              }
+              irpf={irpf}
+              neto={neto}
+            />
 
-              <h2 className="mb-6 text-3xl font-black text-slate-800">
-                Nómina estimada
-              </h2>
-
-              <div className="space-y-4">
-
-                <div className="flex justify-between rounded-2xl bg-slate-100 p-4">
-
-                  <span className="font-semibold">
-                    Salario base
-                  </span>
-
-                  <span className="font-black">
-                    {salarioBase}€
-                  </span>
-
-                </div>
-
-                <div className="flex justify-between rounded-2xl bg-slate-100 p-4">
-
-                  <span className="font-semibold">
-                    Nocturnidad
-                  </span>
-
-                  <span className="font-black">
-                    {plusNocturnidad.toFixed(
-                      0
-                    )}
-                    €
-                  </span>
-
-                </div>
-
-                <div className="flex justify-between rounded-2xl bg-slate-100 p-4">
-
-                  <span className="font-semibold">
-                    Festivos
-                  </span>
-
-                  <span className="font-black">
-                    {plusFestivos.toFixed(
-                      0
-                    )}
-                    €
-                  </span>
-
-                </div>
-
-                <div className="flex justify-between rounded-2xl bg-slate-100 p-4">
-
-                  <span className="font-semibold">
-                    Transporte
-                  </span>
-
-                  <span className="font-black">
-                    {plusTransporte.toFixed(
-                      0
-                    )}
-                    €
-                  </span>
-
-                </div>
-
-                <div className="flex justify-between rounded-2xl bg-red-100 p-4">
-
-                  <span className="font-semibold">
-                    IRPF
-                  </span>
-
-                  <span className="font-black text-red-700">
-                    -{irpf.toFixed(0)}€
-                  </span>
-
-                </div>
-
-                <div className="rounded-3xl bg-gradient-to-r from-blue-700 to-cyan-500 p-6 text-white shadow-xl">
-
-                  <div className="text-sm font-bold uppercase tracking-wider text-blue-100">
-                    Neto estimado
-                  </div>
-
-                  <div className="mt-2 text-5xl font-black">
-                    {neto.toFixed(0)}€
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* ALERTAS */}
-
-            <div className="rounded-3xl bg-white p-6 shadow-2xl">
-
-              <h2 className="mb-5 text-3xl font-black text-slate-800">
-                Verificador
-              </h2>
-
-              {alertas.length ===
-              0 ? (
-
-                <div className="rounded-2xl bg-green-100 p-5 text-center font-bold text-green-700">
-
-                  Sin incidencias detectadas
-
-                </div>
-
-              ) : (
-
-                <div className="space-y-3">
-
-                  {alertas.map(
-                    (
-                      alerta,
-                      i
-                    ) => (
-
-                      <div
-                        key={i}
-                        className="rounded-2xl bg-red-100 p-4 font-bold text-red-700"
-                      >
-                        {alerta}
-                      </div>
-
-                    )
-                  )}
-
-                </div>
-
-              )}
-
-            </div>
+            <Verificador
+              errores={errores}
+            />
 
           </div>
 
