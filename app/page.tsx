@@ -1,65 +1,340 @@
-import Image from "next/image";
+"use client";
+
+import { useMemo, useState } from "react";
+
+import Calendario from "@/components/Calendario";
+import Stats from "@/components/Stats";
+import Nomina from "@/components/Nomina";
+import Verificador from "@/components/Verificador";
+
+import {
+  importarExcelGroundforce,
+} from "@/lib/parserGroundforce";
+
+import {
+  DiaTurno,
+} from "@/types/turnos";
+
+function calcularHoras(
+  inicio: string,
+  fin: string
+) {
+  const hi = Number(
+    inicio.split(":")[0]
+  );
+
+  const hf = Number(
+    fin.split(":")[0]
+  );
+
+  let horas = hf - hi;
+
+  if (horas <= 0) {
+    horas += 24;
+  }
+
+  return horas;
+}
+
+function calcularNocturnas(
+  inicio: string,
+  fin: string
+) {
+  let horas = 0;
+
+  let actual = Number(
+    inicio.split(":")[0]
+  );
+
+  const final = Number(
+    fin.split(":")[0]
+  );
+
+  while (actual !== final) {
+    if (
+      actual >= 22 ||
+      actual < 6
+    ) {
+      horas++;
+    }
+
+    actual =
+      (actual + 1) % 24;
+  }
+
+  return horas;
+}
 
 export default function Home() {
+  const [turnos, setTurnos] =
+    useState<DiaTurno[]>([]);
+
+  // =====================================
+  // IMPORTAR EXCEL
+  // =====================================
+
+  async function manejarImportacion(
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
+    try {
+      const file =
+        e.target.files?.[0];
+
+      if (!file) return;
+
+      const datos =
+        await importarExcelGroundforce(
+          file
+        );
+
+      console.log(datos);
+
+      setTurnos(datos);
+
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Error importando Excel"
+      );
+    }
+  }
+
+  // =====================================
+  // ESTADISTICAS
+  // =====================================
+
+  const estadisticas =
+    useMemo(() => {
+
+      let horas = 0;
+
+      let nocturnas = 0;
+
+      let festivos = 0;
+
+      let diasTrabajados = 0;
+
+      turnos.forEach((dia) => {
+
+        if (
+          dia.codigo === "DL"
+        )
+          return;
+
+        if (
+          dia.codigo === "V"
+        )
+          return;
+
+        if (
+          dia.codigo === "F"
+        ) {
+          festivos++;
+        }
+
+        if (
+          dia.bloques.length > 0
+        ) {
+          diasTrabajados++;
+        }
+
+        dia.bloques.forEach(
+          (bloque) => {
+
+            horas +=
+              calcularHoras(
+                bloque.inicio,
+                bloque.fin
+              );
+
+            nocturnas +=
+              calcularNocturnas(
+                bloque.inicio,
+                bloque.fin
+              );
+
+          }
+        );
+      });
+
+      return {
+        horas,
+        nocturnas,
+        festivos,
+        diasTrabajados,
+      };
+
+    }, [turnos]);
+
+  // =====================================
+  // NOMINA
+  // =====================================
+
+  const salarioBase = 1250;
+
+  const plusNocturnidad =
+    estadisticas.nocturnas * 3;
+
+  const plusFestivos =
+    estadisticas.festivos * 25;
+
+  const plusTransporte =
+    estadisticas.diasTrabajados *
+    6.66;
+
+  const bruto =
+    salarioBase +
+    plusNocturnidad +
+    plusFestivos +
+    plusTransporte;
+
+  const irpf =
+    bruto * 0.12;
+
+  const neto =
+    bruto - irpf;
+
+  // =====================================
+  // OCUPACION
+  // =====================================
+
+  const gradoOcupacion =
+    Math.min(
+      100,
+      Math.round(
+        (estadisticas.horas /
+          160) *
+          100
+      )
+    );
+
+  // =====================================
+  // VERIFICADOR
+  // =====================================
+
+  const errores: string[] =
+    [];
+
+  if (
+    estadisticas.nocturnas > 40
+  ) {
+    errores.push(
+      "Exceso nocturnidad"
+    );
+  }
+
+  if (
+    estadisticas.horas > 180
+  ) {
+    errores.push(
+      "Posible exceso jornada"
+    );
+  }
+
+  // =====================================
+  // UI
+  // =====================================
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen bg-slate-100 p-6">
+
+      <div className="mx-auto max-w-7xl">
+
+        {/* HEADER */}
+
+        <div className="mb-6 rounded-3xl bg-white p-6 shadow-2xl">
+
+          <h1 className="text-5xl font-black text-blue-700">
+            Groundforce Planner
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <p className="mt-2 text-lg text-slate-500">
+            Simulador operativo y salarial inteligente
           </p>
+
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        {/* IMPORTADOR */}
+
+        <div className="mb-6 rounded-3xl bg-white p-6 shadow-2xl">
+
+          <h2 className="mb-4 text-2xl font-bold">
+            Importar cuadrante
+          </h2>
+
+          <label className="flex cursor-pointer items-center justify-center rounded-3xl bg-blue-600 px-6 py-5 text-lg font-bold text-white transition hover:bg-blue-700">
+
+            Importar Excel Groundforce
+
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={
+                manejarImportacion
+              }
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+          </label>
+
         </div>
-      </main>
-    </div>
+
+        {/* CONTENIDO */}
+
+        <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
+
+          <Calendario
+            turnos={turnos}
+          />
+
+          <div className="space-y-6">
+
+            <Stats
+              horas={
+                estadisticas.horas
+              }
+              nocturnas={
+                estadisticas.nocturnas
+              }
+              dias={
+                estadisticas.diasTrabajados
+              }
+              festivos={
+                estadisticas.festivos
+              }
+              ocupacion={
+                gradoOcupacion
+              }
+            />
+
+            <Nomina
+              salarioBase={
+                salarioBase
+              }
+              plusNocturnidad={
+                plusNocturnidad
+              }
+              plusFestivos={
+                plusFestivos
+              }
+              plusTransporte={
+                plusTransporte
+              }
+              irpf={irpf}
+              neto={neto}
+            />
+
+            <Verificador
+              errores={errores}
+            />
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
   );
 }
