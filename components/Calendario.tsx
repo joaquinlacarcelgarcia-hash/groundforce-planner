@@ -5,7 +5,66 @@ import {
 import {
   CODIGOS,
 } from "@/lib/parserGroundforce";
+function calcularHoras(
+  inicio: string,
+  fin: string
+) {
 
+  const hi = Number(
+    inicio.split(":")[0]
+  );
+
+  const hf = Number(
+    fin.split(":")[0]
+  );
+
+  let horas = hf - hi;
+
+  if (horas <= 0) {
+    horas += 24;
+  }
+
+  return horas;
+}
+
+function calcularNocturnas(
+  inicio: string,
+  fin: string
+) {
+
+  let nocturnas = 0;
+
+  let actual = Number(
+    inicio.split(":")[0]
+  );
+
+  const final = Number(
+    fin.split(":")[0]
+  );
+
+  let totales = 0;
+
+  while (actual !== final) {
+
+    totales++;
+
+    if (
+      actual >= 21 ||
+      actual < 8
+    ) {
+      nocturnas++;
+    }
+
+    actual =
+      (actual + 1) % 24;
+  }
+
+  if (nocturnas >= 4) {
+    return totales;
+  }
+
+  return nocturnas;
+}
 type Props = {
   turnos: DiaTurno[];
 };
@@ -129,12 +188,51 @@ export default function Calendario({
                           ) => (
 
                             <div
-                              key={i}
-                              className="rounded-xl bg-blue-100 p-2 text-sm font-semibold"
-                            >
-                              {bloque.inicio} -{" "}
-                              {bloque.fin}
-                            </div>
+  key={i}
+  className="rounded-xl bg-blue-100 p-3"
+>
+
+  <div className="text-sm font-black text-slate-800">
+
+    {bloque.inicio} - {bloque.fin}
+
+  </div>
+
+  <div className="mt-2 space-y-1 text-xs font-semibold text-slate-600">
+
+    <div>
+      {calcularHoras(
+        bloque.inicio,
+        bloque.fin
+      )}h jornada
+    </div>
+
+    <div>
+      {calcularNocturnas(
+        bloque.inicio,
+        bloque.fin
+      )}h nocturnas
+    </div>
+
+    {calcularNocturnas(
+      bloque.inicio,
+      bloque.fin
+    ) ===
+      calcularHoras(
+        bloque.inicio,
+        bloque.fin
+      ) && (
+
+      <div className="font-bold text-indigo-700">
+        🌙 convenio nocturno
+      </div>
+
+    )}
+
+  </div>
+
+</div>
+
 
                           )
                         )
