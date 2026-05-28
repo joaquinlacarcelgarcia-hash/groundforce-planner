@@ -6,6 +6,7 @@ import Calendario from "@/components/Calendario";
 import Stats from "@/components/Stats";
 import Nomina from "@/components/Nomina";
 import Verificador from "@/components/Verificador";
+import BotonPDF from "@/components/BotonPDF";
 
 import {
   importarExcelGroundforce,
@@ -40,7 +41,8 @@ function calcularNocturnas(
   inicio: string,
   fin: string
 ) {
-  let horas = 0;
+
+  let horasNocturnas = 0;
 
   let actual = Number(
     inicio.split(":")[0]
@@ -50,20 +52,36 @@ function calcularNocturnas(
     fin.split(":")[0]
   );
 
+  let horasTotales = 0;
+
   while (actual !== final) {
 
+    horasTotales++;
+
+    // NOCTURNIDAD CONVENIO
+    // 21:00 -> 08:00
+
     if (
-      actual >= 22 ||
-      actual < 6
+      actual >= 21 ||
+      actual < 8
     ) {
-      horas++;
+      horasNocturnas++;
     }
 
     actual =
       (actual + 1) % 24;
   }
 
-  return horas;
+  // SI HAY 4H O MAS
+  // TODO EL TURNO ES NOCTURNO
+
+  if (
+    horasNocturnas >= 4
+  ) {
+    return horasTotales;
+  }
+
+  return horasNocturnas;
 }
 
 export default function Home() {
@@ -271,7 +289,10 @@ export default function Home() {
   // =====================================
 
   return (
-    <main className="min-h-screen bg-slate-100 p-6">
+    <main
+  id="exportar-pdf"
+  className="min-h-screen bg-slate-100 p-6"
+>
 
       <div className="mx-auto max-w-7xl">
 
@@ -487,7 +508,7 @@ export default function Home() {
             <Verificador
               errores={errores}
             />
-
+<BotonPDF />
           </div>
 
         </div>
