@@ -15,6 +15,9 @@ import {
 import {
   DiaTurno,
 } from "@/types/turnos";
+import {
+  detectarRotacion,
+} from "@/lib/detectarRotacion";
 
 function calcularHoras(
   inicio: string,
@@ -264,7 +267,10 @@ export default function Home() {
   // =====================================
   // VERIFICADOR
   // =====================================
-
+const rotacionDetectada =
+  detectarRotacion(
+    turnosFiltrados
+  );
   const errores: string[] =
     [];
 
@@ -397,7 +403,17 @@ export default function Home() {
           </div>
 
         </div>
+<div className="mb-4 flex items-center gap-3">
 
+  <div className="rounded-full bg-indigo-100 px-4 py-2 text-sm font-bold text-indigo-700">
+
+    Rotación:
+    {" "}
+    {rotacionDetectada}
+
+  </div>
+
+</div>
         {/* DASHBOARD SUPERIOR */}
 
         <div className="mb-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
