@@ -96,6 +96,16 @@ export default function Home() {
 
   const [mesActivo, setMesActivo] =
     useState("TODOS");
+    const [
+  categoria,
+  setCategoria,
+] = useState<
+  | "agenteRampa"
+  | "supervisorRampa"
+  | "jefeServicio"
+  | "agenteJefe"
+  | "supervisorNucleo"
+>("agenteRampa");
 
   // =====================================
   // IMPORTAR EXCEL
@@ -245,6 +255,8 @@ export default function Home() {
     estadisticas.festivos,
   diasTrabajados:
     estadisticas.diasTrabajados,
+categoria,
+
 });
   // =====================================
   // OCUPACION
@@ -397,7 +409,47 @@ const rotacionDetectada =
             </select>
 
           </div>
+<div className="rounded-3xl bg-white p-6 shadow-2xl">
 
+  <h2 className="mb-4 text-2xl font-bold">
+    Categoría
+  </h2>
+
+  <select
+    value={categoria}
+    onChange={(e) =>
+      setCategoria(
+        e.target.value as
+          "agente" |
+          "coordinador"
+      )
+    }
+    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 text-lg font-semibold"
+  >
+
+    <option value="agenteRampa">
+  Agente de rampa
+</option>
+
+<option value="supervisorRampa">
+  Supervisor de rampa
+</option>
+
+<option value="jefeServicio">
+  Jefe de servicio
+</option>
+
+<option value="agenteJefe">
+  Agente jefe
+</option>
+
+<option value="supervisorNucleo">
+  Supervisor de núcleo
+</option>
+
+  </select>
+
+</div>
         </div>
 <div className="mb-4 flex items-center gap-3">
 

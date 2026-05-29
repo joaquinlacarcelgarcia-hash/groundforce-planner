@@ -7,7 +7,12 @@ type Props = {
   nocturnas: number;
   festivos: number;
   diasTrabajados: number;
-  categoria?: "agente" | "coordinador";
+  categoria?:
+  | "agenteRampa"
+  | "supervisorRampa"
+  | "jefeServicio"
+  | "agenteJefe"
+  | "supervisorNucleo";
 };
 
 export function calcularNomina({
@@ -18,8 +23,8 @@ export function calcularNomina({
   categoria,
 }: Props) {
   const categoriaSeleccionada =
-  categoria || "agente";
-
+  categoria =
+  "agenteRampa";
 const convenioCategoria =
   CONVENIO.categorias[
     categoriaSeleccionada
