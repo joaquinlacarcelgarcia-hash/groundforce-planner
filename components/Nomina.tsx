@@ -3,6 +3,7 @@ type Props = {
   plusNocturnidad: number;
   plusFestivos: number;
   plusTransporte: number;
+  bruto: number;
   irpf: number;
   neto: number;
 };
@@ -12,6 +13,7 @@ export default function Nomina({
   plusNocturnidad,
   plusFestivos,
   plusTransporte,
+  bruto,
   irpf,
   neto,
 }: Props) {
@@ -63,8 +65,18 @@ export default function Nomina({
             {irpf.toFixed(2)} €
           </span>
         </div>
+<div className="flex items-center justify-between">
 
-        <div className="flex justify-between border-t pt-4 text-xl font-black">
+  <span className="text-slate-600">
+    Bruto
+  </span>
+
+  <span className="font-bold">
+    {bruto.toFixed(2)} €
+  </span>
+
+</div>
+<div className="flex justify-between border-t pt-4 text-xl font-black">
 
           <span>Neto estimado</span>
 

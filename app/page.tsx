@@ -18,7 +18,9 @@ import {
 import {
   detectarRotacion,
 } from "@/lib/detectarRotacion";
-
+import {
+  calcularNomina,
+} from "@/lib/calculoNomina";
 function calcularHoras(
   inicio: string,
   fin: string
@@ -226,30 +228,24 @@ export default function Home() {
   // NOMINA
   // =====================================
 
-  const salarioBase = 1250;
-
-  const plusNocturnidad =
-    estadisticas.nocturnas * 3;
-
-  const plusFestivos =
-    estadisticas.festivos * 25;
-
-  const plusTransporte =
-    estadisticas.diasTrabajados *
-    6.66;
-
-  const bruto =
-    salarioBase +
-    plusNocturnidad +
-    plusFestivos +
-    plusTransporte;
-
-  const irpf =
-    bruto * 0.12;
-
-  const neto =
-    bruto - irpf;
-
+  const {
+  salarioBase,
+  plusNocturnidad,
+  plusFestivos,
+  plusTransporte,
+  bruto,
+  irpf,
+  neto,
+} = calcularNomina({
+  horas:
+    estadisticas.horas,
+  nocturnas:
+    estadisticas.nocturnas,
+  festivos:
+    estadisticas.festivos,
+  diasTrabajados:
+    estadisticas.diasTrabajados,
+});
   // =====================================
   // OCUPACION
   // =====================================
@@ -517,6 +513,7 @@ const rotacionDetectada =
               plusTransporte={
                 plusTransporte
               }
+              bruto={bruto}
               irpf={irpf}
               neto={neto}
             />
